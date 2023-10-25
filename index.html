@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./styles/style.css">
+</head>
+<body>
+    <h1>Heroes</h1>
+    <form id="addHeroForm">
+        <label for="heroName">Name:</label>
+        <input type="text" id="heroName">
+        
+        <label for="heroComics">Comics:</label>
+        <select id="heroComics" >
+            <option value="Marvel">Marvel</option>
+            <option value="DC">DC</option>
+        </select>
+        
+        <label for="heroFavourite">Favourite:</label>
+        <input type="checkbox" id="heroFavourite">
+        
+        <button type="submit">Add Hero</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Comics</th>
+                <th>Favourite</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="heroTable">
+        </tbody>
+    </table>
+
+    <script src="./script/script.js"></script>
+</body>
+</html>
