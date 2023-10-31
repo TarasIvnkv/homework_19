@@ -1,31 +1,45 @@
 const API = `https://6519440e818c4e98ac60353a.mockapi.io/heroes`;
 const comicsAPI = `https://6519440e818c4e98ac60353a.mockapi.io/comics`;
 
-const addHeroForm = document.querySelector(`#addHeroForm`);
-const heroTable = document.querySelector(`#heroTable`);
+const addHeroForm = document.querySelector("#addHeroForm");
+const heroTable = document.querySelector("#heroTable");
 
+function renderHero(hero) {
+    const row = document.createElement("tr");
+    const nameCell = document.createElement("td");
+    nameCell.textContent = hero.name;
+    const comicsCell = document.createElement("td");
+    comicsCell.textContent = hero.comics;
+    const favouriteCell = document.createElement("td");
+    const favouriteCheckbox = document.createElement("input");
+    favouriteCheckbox.type = "checkbox";
+    favouriteCheckbox.checked = hero.favourite;
+    favouriteCell.append(favouriteCheckbox);
+    const actionsCell = document.createElement("td");
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.setAttribute("data-id", hero.id);
+    actionsCell.append(deleteButton);
+    row.append(nameCell);
+    row.append(comicsCell);
+    row.append(favouriteCell);
+    row.append(actionsCell);
+    heroTable.append(row);
+}
 
 const fetchHeroes = () => {
     fetch(API)
         .then((data) => {
-            if(data.ok) return data.json();
-            else return Promise.reject(data.status);}
-        )
-        .then(heroes => {
-            heroTable.innerHTML = ``;
-            heroes
-                .forEach(hero => {
-                    const row = document.createElement(`tr`);
-                    row.innerHTML = `
-                        <td>${hero.name}</td>
-                        <td>${hero.comics}</td>
-                        <td>${hero.favourite ? "Yes" : "No"}</td>
-                        <td><button data-id="${hero.id}">Delete</button></td>
-                    `;
-                    heroTable.append(row);
-                });
+            if (data.ok) return data.json();
+            else return Promise.reject(data.status);
         })
-        .catch(err => console.log(`in catch ${err}`))
+        .then(heroes => {
+            heroTable.innerHTML = "";
+            heroes.forEach(hero => {
+                renderHero(hero);
+            });
+        })
+        .catch(err => console.log(`in catch ${err}`));
 }
 
 const fetchComics = () => {
@@ -35,10 +49,9 @@ const fetchComics = () => {
             else return Promise.reject(data.status);}
         )
         .then(comics => {
-            const heroComics = document.querySelector("heroComics");
+            const heroComics = document.querySelector("#heroComics");
             comics.forEach(comic => {
                 const option = document.createElement("option");
-                // option.value = comic.name;
                 option.innerHTML = comic.name;
                 heroComics.append(option);
             });
