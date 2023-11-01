@@ -14,16 +14,19 @@ function renderHero(hero) {
     const favouriteCheckbox = document.createElement("input");
     favouriteCheckbox.type = "checkbox";
     favouriteCheckbox.checked = hero.favourite;
+    favouriteCheckbox.addEventListener("change", () => updateFavourite(hero.id, favouriteCheckbox.checked));
     favouriteCell.append(favouriteCheckbox);
     const actionsCell = document.createElement("td");
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
     deleteButton.setAttribute("data-id", hero.id);
+    deleteButton.addEventListener("click", () => deleteHero(hero.id));
     actionsCell.append(deleteButton);
     row.append(nameCell);
     row.append(comicsCell);
     row.append(favouriteCell);
     row.append(actionsCell);
+    row.setAttribute("data-id", hero.id);
     heroTable.append(row);
 }
 
@@ -34,68 +37,57 @@ const fetchHeroes = () => {
             else return Promise.reject(data.status);
         })
         .then(heroes => {
-            heroTable.innerHTML = "";
             heroes.forEach(hero => {
-                renderHero(hero);
+                const existingRow = document.querySelector(`tr[data-id="${hero.id}"]`);
+                if (existingRow) {
+                    const favouriteCheckbox = existingRow.querySelector("input[type='checkbox']");
+                    favouriteCheckbox.checked = hero.favourite;
+                } else {
+                    renderHero(hero);
+                }
             });
         })
         .catch(err => console.log(`in catch ${err}`));
 }
 
-const fetchComics = () => {
-    fetch(comicsAPI)
+function addHero() {
+    const heroName = document.querySelector("heroName").value;
+    const heroComics = document.querySelector("heroComics").value;
+    const heroFavourite = document.querySelector("heroFavourite").checked;
+
+    fetch(API, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: heroName,
+            comics: heroComics,
+            favourite: heroFavourite
+        })
+    })
         .then((data) => {
             if(data.ok) return data.json();
-            else return Promise.reject(data.status);}
-        )
-        .then(comics => {
-            const heroComics = document.querySelector("#heroComics");
-            comics.forEach(comic => {
-                const option = document.createElement("option");
-                option.innerHTML = comic.name;
-                heroComics.append(option);
-            });
+            else return Promise.reject(data.status);
         })
-        .catch(err => console.log(`in catch ${err}`))
+        .then(() => {
+            console.log("New hero added!");
+            fetchHeroes();
+        })
+        .catch(error => console.error(error));
 }
 
-function addHero() {
-    const heroName = document.getElementById("heroName").value;
-    const heroComics = document.getElementById("heroComics").value;
-    const heroFavourite = document.getElementById("heroFavourite").checked;
-
-    fetch(API)
-        .then((data) => {
-            if(data.ok) return data.json();
-            else return Promise.reject(data.status);}
-        )
-        .then(heroes => {
-            if (heroes.some(hero => hero.name === heroName)) {
-                console.log("Hero with the same name already exists!");
-            } else {
-                const newHero = {
-                    name: heroName,
-                    comics: heroComics,
-                    favourite: heroFavourite
-                };
-
-                fetch(API, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(newHero)
-                })
-                    .then((data) => {
-                        if(data.ok) return data.json();
-                        else return Promise.reject(data.status);}
-                    )
-                    .then(() => {
-                        console.log("New hero added!");
-                        fetchHeroes();
-                    })
-                    .catch(error => console.error(error));
-            }
+function updateFavourite(id, favourite) {
+    fetch(API + "/" + id, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ favourite })
+    })
+        .then(() => {
+            console.log("Favourite updated!");
+            fetchHeroes();
         })
         .catch(err => console.log(err));
 }
@@ -106,7 +98,10 @@ function deleteHero(id) {
     })
         .then(() => {
             console.log("Hero deleted!");
-            fetchHeroes();
+            const deletedRow = document.querySelector(`tr[data-id="${id}"]`);
+            if (deletedRow) {
+                deletedRow.remove();
+            }
         })
         .catch(err => console.log(err));
 }
@@ -116,13 +111,23 @@ addHeroForm.addEventListener("submit", function (e) {
     addHero();
 });
 
+function fillComicsSelect() {
+    fetch(comicsAPI)
+        .then((data) => {
+            if(data.ok) return data.json();
+            else return Promise.reject(data.status);
+        })
+        .then(comics => {
+            const heroComics = document.querySelector("#heroComics");
+            comics.forEach(comic => {
+                const option = document.createElement("option");
+                option.value = comic.name;
+                option.text = comic.name;
+                heroComics.append(option);
+            });
+        })
+        .catch(err => console.log(`in catch ${err}`));
+}
 
-heroTable.addEventListener("click", function (e) {
-    if (e.target.tagName === "BUTTON") {
-        const heroId = e.target.getAttribute("data-id");
-        deleteHero(heroId);
-    }
-});
-
+fillComicsSelect();
 fetchHeroes();
-fetchComics();
